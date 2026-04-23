@@ -20,12 +20,20 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install pymupdf pytesseract pillow openpyxl pyinstaller
     
     - name: Install Tesseract
       run: |
-        choco install tesseract --yes
-        choco install tesseract-language-chinese-simplified --yes
+        # 下载并安装 Tesseract
+        $installer = "$env:TEMP\tesseract-setup.exe"
+        Invoke-WebRequest -Uri "https://github.com/UB-Mannheim/tesseract/releases/download/v5.3.3/tesseract-ocr-w64-setup-5.3.3.exe" -OutFile $installer
+        Start-Process -FilePath $installer -ArgumentList "/SILENT", "/SP-", "/NORESTART", "/DIR=C:\Program Files\Tesseract-OCR" -Wait
+        $env:PATH = "C:\Program Files\Tesseract-OCR;$env:PATH"
+        [Environment]::SetEnvironmentVariable("Path", $env:PATH + ";C:\Program Files\Tesseract-OCR", "Machine")
+    
+    - name: Verify Tesseract
+      run: |
+        tesseract --version
     
     - name: Build EXE (CLI)
       run: |
